@@ -2,24 +2,7 @@
 
 import { useState } from "react";
 import CategoryCombobox from "./CategoryCombobox";
-
-interface PostWithCounts {
-    id: string;
-    content: string;
-    category: string | null;
-    date: string;
-    createdAt: string;
-    _count: { likes: number; comments: number };
-    comments: CommentWithCount[];
-}
-
-interface CommentWithCount {
-    id: string;
-    postId: string;
-    content: string;
-    createdAt: string;
-    _count: { likes: number };
-}
+import {PostWithCounts} from "@/app/types";
 
 interface Props {
     onPostCreated: (post: PostWithCounts) => void;

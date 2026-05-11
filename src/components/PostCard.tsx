@@ -3,24 +3,7 @@
 import { useState } from "react";
 import CommentSection from "./CommentSection";
 import { getCategoryColor } from "@/lib/category-colors";
-
-interface CommentWithCount {
-    id: string;
-    postId: string;
-    content: string;
-    createdAt: string;
-    _count: { likes: number };
-}
-
-interface PostWithCounts {
-    id: string;
-    content: string;
-    category: string | null;
-    date: string;
-    createdAt: string;
-    _count: { likes: number; comments: number };
-    comments: CommentWithCount[];
-}
+import {CommentWithCount, PostWithCounts} from "@/app/types";
 
 interface Props {
     post: PostWithCounts;
@@ -36,6 +19,8 @@ function formatTime(dateStr: string) {
 
 export default function PostCard({ post, onDeleted }: Props) {
     const [likeCount, setLikeCount] = useState(post._count.likes);
+    const [commentCount, setCommentCount] = useState(post._count.comments);
+    const [comments, setComments] = useState(post.comments);
     const [showComments, setShowComments] = useState(false);
     const [deleting, setDeleting] = useState(false);
 
@@ -49,6 +34,19 @@ export default function PostCard({ post, onDeleted }: Props) {
         } catch {
             setLikeCount((n) => n - 1);
         }
+    }
+
+    function handleCommentAdded(comment: CommentWithCount) {
+        setComments((prev) => [...prev, comment]);
+        setCommentCount((n) => n + 1);
+    }
+
+    function handleCommentLiked(commentId: string, count: number) {
+        setComments((prev) =>
+            prev.map((c) =>
+                c.id === commentId ? { ...c, _count: { likes: count } } : c
+            )
+        );
     }
 
     async function handleDelete() {
@@ -68,8 +66,8 @@ export default function PostCard({ post, onDeleted }: Props) {
             <div className="flex items-start justify-between gap-2 mb-2">
                 <div className="flex items-center gap-2 flex-wrap">
                     {post.category && (
-                        <span className={`text-xs font-medium px-2.5 py-0.5 rounded-full ${getCategoryColor(post.category)}`}>
-              {post.category}
+                        <span className={`text-xs font-medium px-2.5 py-0.5 rounded-full ${getCategoryColor(post.category.name)}`}>
+              {post.category.name}
             </span>
                     )}
                     <p className="text-gray-800 text-sm leading-relaxed">{post.content}</p>
@@ -98,13 +96,13 @@ export default function PostCard({ post, onDeleted }: Props) {
                     className="flex items-center gap-1 text-sm text-gray-400 hover:text-gray-600 transition"
                 >
                     <span>💬</span>
-                    <span>{post._count.comments}</span>
+                    <span>{commentCount}</span>
                     <span className="text-xs">{showComments ? "닫기" : "댓글"}</span>
                 </button>
             </div>
 
             {showComments && (
-                <CommentSection postId={post.id} initialComments={post.comments} />
+                <CommentSection postId={post.id} comments={comments} onCommentAdded={handleCommentAdded} onCommentLiked={handleCommentLiked} />
             )}
         </div>
     );

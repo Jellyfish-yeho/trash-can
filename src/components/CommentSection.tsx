@@ -1,18 +1,13 @@
 "use client";
 
 import { useState } from "react";
-
-interface CommentWithCount {
-  id: string;
-  postId: string;
-  content: string;
-  createdAt: string;
-  _count: { likes: number };
-}
+import {CommentWithCount} from "@/app/types";
 
 interface Props {
-  postId: string;
-  initialComments: CommentWithCount[];
+    postId: string;
+    comments: CommentWithCount[];
+    onCommentAdded: (comment: CommentWithCount) => void;
+    onCommentLiked: (commentId: string, count: number) => void;
 }
 
 function formatTime(dateStr: string) {
@@ -22,31 +17,30 @@ function formatTime(dateStr: string) {
   });
 }
 
-export default function CommentSection({ postId, initialComments }: Props) {
-  const [comments, setComments] = useState<CommentWithCount[]>(initialComments);
+export default function CommentSection({ postId, comments, onCommentAdded, onCommentLiked }: Props) {
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
   const [likedComments, setLikedComments] = useState<Record<string, number>>({});
 
-  async function submitComment(e: React.FormEvent) {
-    e.preventDefault();
-    if (!input.trim()) return;
-    setLoading(true);
-    try {
-      const res = await fetch(`/api/posts/${postId}/comments`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ content: input }),
-      });
-      if (!res.ok) throw new Error();
-      const comment = await res.json();
-      setComments((prev) => [...prev, comment]);
-      setInput("");
-    } catch {
-    } finally {
-      setLoading(false);
+    async function submitComment(e: React.FormEvent) {
+        e.preventDefault();
+        if (!input.trim()) return;
+        setLoading(true);
+        try {
+            const res = await fetch(`/api/posts/${postId}/comments`, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ content: input }),
+            });
+            if (!res.ok) throw new Error();
+            const comment = await res.json();
+            onCommentAdded(comment);  // ← 부모한테 전달
+            setInput("");
+        } catch {
+        } finally {
+            setLoading(false);
+        }
     }
-  }
 
     async function likeComment(id: string) {
         const prev = likedComments[id] ?? 0;
@@ -55,10 +49,8 @@ export default function CommentSection({ postId, initialComments }: Props) {
             const res = await fetch(`/api/comments/${id}/like`, { method: "POST" });
             if (!res.ok) throw new Error();
             const { count } = await res.json();
-            setComments((old) =>
-                old.map((c) => (c.id === id ? { ...c, _count: { likes: count } } : c))
-            );
-            setLikedComments((old) => ({ ...old, [id]: 0 })); // ← 추가
+            onCommentLiked(id, count);  // ← 부모한테 실제 count 전달
+            setLikedComments((old) => ({ ...old, [id]: 0 }));  // optimistic 초기화
         } catch {
             setLikedComments((old) => ({ ...old, [id]: prev }));
         }
@@ -81,7 +73,7 @@ export default function CommentSection({ postId, initialComments }: Props) {
               className="flex items-center gap-1 text-xs text-gray-400 hover:text-rose-500 transition mt-1 shrink-0"
             >
               <span>❤️</span>
-              <span>{(c._count.likes ?? 0) + (likedComments[c.id] ?? 0)}</span>
+              <span>{c._count.likes}</span>
             </button>
           </div>
         ))}

@@ -2,18 +2,10 @@ import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 
 export async function GET() {
-    const posts = await prisma.post.findMany({
-        where: { category: { not: null } },
-        select: { category: true },
-        distinct: ["category"],
-        orderBy: { category: "asc" },
+    const categories = await prisma.category.findMany({
+        orderBy: { name: "asc" },
     });
-
-    const categories = posts
-        .map((p) => p.category as string)
-        .filter(Boolean);
-
-    return NextResponse.json(categories);
+    return NextResponse.json(categories.map((c) => c.name));
 }
 
 export async function DELETE(request: NextRequest) {
@@ -23,10 +15,7 @@ export async function DELETE(request: NextRequest) {
         return NextResponse.json({ error: "카테고리명이 없습니다." }, { status: 400 });
     }
 
-    await prisma.post.updateMany({
-        where: { category },
-        data: { category: null },
-    });
+    await prisma.category.delete({ where: { name: category } });
 
     return NextResponse.json({ ok: true });
 }

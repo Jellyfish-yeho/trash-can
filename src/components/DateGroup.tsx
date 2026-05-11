@@ -2,24 +2,7 @@
 
 import { useState } from "react";
 import PostCard from "./PostCard";
-
-interface CommentWithCount {
-    id: string;
-    postId: string;
-    content: string;
-    createdAt: string;
-    _count: { likes: number };
-}
-
-interface PostWithCounts {
-    id: string;
-    content: string;
-    category: string | null;
-    date: string;
-    createdAt: string;
-    _count: { likes: number; comments: number };
-    comments: CommentWithCount[];
-}
+import {PostWithCounts} from "@/app/types";
 
 interface Props {
     label: string;
