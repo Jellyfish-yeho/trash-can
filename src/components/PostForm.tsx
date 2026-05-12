@@ -44,6 +44,21 @@ export default function PostForm({ onPostCreated }: Props) {
         else setCategoryColor("");
     }
 
+    function handlePaste(e: React.ClipboardEvent<HTMLTextAreaElement>) {
+        const file = e.clipboardData.files?.[0];
+        if (!file || !file.type.startsWith("image/")) return;
+
+        if (file.size > MAX_IMAGE_SIZE_BYTES) {
+            setError(`이미지는 ${MAX_IMAGE_SIZE_MB}MB 이하만 업로드 가능합니다.`);
+            return;
+        }
+
+        e.preventDefault(); // 텍스트로 붙여넣기 방지
+        setImage(file);
+        setImagePreview(URL.createObjectURL(file));
+        setError("");
+    }
+
     async function handleSubmit(e: React.FormEvent) {
         e.preventDefault();
         if (!content.trim()) {
@@ -130,6 +145,7 @@ export default function PostForm({ onPostCreated }: Props) {
                         setContent(e.target.value);
                     }
                 }}
+                onPaste={handlePaste}
                 rows={3}
                 className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-rose-300 resize-none mb-1"
             />

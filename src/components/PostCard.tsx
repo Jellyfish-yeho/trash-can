@@ -24,8 +24,31 @@ export default function PostCard({post, onDeleted}: Props) {
     const [showComments, setShowComments] = useState(post.comments.length > 0);
     const [deleting, setDeleting] = useState(false);
     const [imageOpen, setImageOpen] = useState(false);
+    const [translated, setTranslated] = useState<string | null>(null);
+    const [translating, setTranslating] = useState(false);
 
     const {opacity} = useOpacity();
+
+    async function handleTranslate() {
+        if (translated) {
+            setTranslated(null); // 다시 누르면 원문으로
+            return;
+        }
+        setTranslating(true);
+        try {
+            const res = await fetch("/api/translate", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ text: post.content }),
+            });
+            if (!res.ok) throw new Error();
+            const data = await res.json();
+            setTranslated(data.translated);
+        } catch {
+        } finally {
+            setTranslating(false);
+        }
+    }
 
     async function handleLike() {
         setLikeCount((n) => n + 1);
@@ -85,12 +108,23 @@ export default function PostCard({post, onDeleted}: Props) {
                 </button>
             </div>
 
+            {/* 한국어가 아닌 경우만 번역 버튼 표시 */}
+            {/[a-zA-Z\u4e00-\u9fff\u3040-\u30ff]/.test(post.content) && (
+                <button
+                    onClick={handleTranslate}
+                    disabled={translating}
+                    className="text-xs text-gray-400 hover:text-blue-400 transition mb-2 disabled:opacity-40"
+                >
+                    {translating ? "번역 중..." : translated ? "원문 보기" : "🌐 번역"}
+                </button>
+            )}
+
             {/* 2행: 텍스트 */}
             <p
                 className="text-gray-800 text-sm leading-relaxed whitespace-pre-wrap transition-opacity duration-200 mb-2"
                 style={{opacity: opacity / 100}}
             >
-                {post.content}
+                {translated ?? post.content}
             </p>
 
             {/* 3행: 이미지 */}
