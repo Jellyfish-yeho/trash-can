@@ -135,6 +135,7 @@ export default function PostCard({post, onDeleted}: Props) {
                         alt="첨부 이미지"
                         className="mt-1 mb-2 rounded-xl max-h-32 object-cover cursor-pointer hover:opacity-90 transition"
                         onClick={() => setImageOpen(true)}
+                        style={{opacity: opacity / 100}}
                     />
                     {/* 이미지 미리보기 모달 */}
                     {imageOpen && (
