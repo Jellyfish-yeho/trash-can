@@ -4,6 +4,7 @@ import { useState } from "react";
 import CommentSection from "./CommentSection";
 import { getCategoryColor } from "@/lib/category-colors";
 import {CommentWithCount, PostWithCounts} from "@/app/types";
+import {useOpacity} from "@/app/context/OpacityContext";
 
 interface Props {
     post: PostWithCounts;
@@ -23,6 +24,8 @@ export default function PostCard({ post, onDeleted }: Props) {
     const [comments, setComments] = useState(post.comments);
     const [showComments, setShowComments] = useState(false);
     const [deleting, setDeleting] = useState(false);
+
+    const { opacity } = useOpacity();
 
     async function handleLike() {
         setLikeCount((n) => n + 1);
@@ -70,7 +73,12 @@ export default function PostCard({ post, onDeleted }: Props) {
               {post.category.name}
             </span>
                     )}
-                    <p className="text-gray-800 text-sm leading-relaxed">{post.content}</p>
+                    <p
+                        className="text-gray-800 text-sm leading-relaxed transition-opacity duration-200"
+                        style={{ opacity: opacity / 100 }}
+                    >
+                        {post.content}
+                    </p>
                 </div>
                 <button
                     onClick={handleDelete}

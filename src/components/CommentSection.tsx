@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import {CommentWithCount} from "@/app/types";
+import {useOpacity} from "@/app/context/OpacityContext";
 
 interface Props {
     postId: string;
@@ -21,6 +22,8 @@ export default function CommentSection({ postId, comments, onCommentAdded, onCom
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
   const [likedComments, setLikedComments] = useState<Record<string, number>>({});
+
+    const { opacity } = useOpacity();
 
     async function submitComment(e: React.FormEvent) {
         e.preventDefault();
@@ -65,7 +68,12 @@ export default function CommentSection({ postId, comments, onCommentAdded, onCom
         {comments.map((c) => (
           <div key={c.id} className="flex items-start gap-2 group">
             <div className="flex-1 bg-gray-50 rounded-xl px-3 py-2">
-              <p className="text-sm text-gray-800">{c.content}</p>
+                <p
+                    className="text-sm text-gray-800 transition-opacity duration-200"
+                    style={{ opacity: opacity / 100 }}
+                >
+                    {c.content}
+                </p>
               <p className="text-xs text-gray-400 mt-1">{formatTime(c.createdAt)}</p>
             </div>
             <button
