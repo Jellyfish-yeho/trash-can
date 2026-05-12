@@ -22,7 +22,7 @@ export default function PostCard({ post, onDeleted }: Props) {
     const [likeCount, setLikeCount] = useState(post._count.likes);
     const [commentCount, setCommentCount] = useState(post._count.comments);
     const [comments, setComments] = useState(post.comments);
-    const [showComments, setShowComments] = useState(true);
+    const [showComments, setShowComments] = useState(post.comments.length > 0);
     const [deleting, setDeleting] = useState(false);
 
     const { opacity } = useOpacity();
