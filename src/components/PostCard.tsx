@@ -1,8 +1,7 @@
 "use client";
 
-import { useState } from "react";
+import {useState} from "react";
 import CommentSection from "./CommentSection";
-import { getCategoryColor } from "@/lib/category-colors";
 import {CommentWithCount, PostWithCounts} from "@/app/types";
 import {useOpacity} from "@/app/context/OpacityContext";
 
@@ -18,21 +17,21 @@ function formatTime(dateStr: string) {
     });
 }
 
-export default function PostCard({ post, onDeleted }: Props) {
+export default function PostCard({post, onDeleted}: Props) {
     const [likeCount, setLikeCount] = useState(post._count.likes);
     const [commentCount, setCommentCount] = useState(post._count.comments);
     const [comments, setComments] = useState(post.comments);
     const [showComments, setShowComments] = useState(post.comments.length > 0);
     const [deleting, setDeleting] = useState(false);
 
-    const { opacity } = useOpacity();
+    const {opacity} = useOpacity();
 
     async function handleLike() {
         setLikeCount((n) => n + 1);
         try {
-            const res = await fetch(`/api/posts/${post.id}/like`, { method: "POST" });
+            const res = await fetch(`/api/posts/${post.id}/like`, {method: "POST"});
             if (!res.ok) throw new Error();
-            const { count } = await res.json();
+            const {count} = await res.json();
             setLikeCount(count);
         } catch {
             setLikeCount((n) => n - 1);
@@ -47,7 +46,7 @@ export default function PostCard({ post, onDeleted }: Props) {
     function handleCommentLiked(commentId: string, count: number) {
         setComments((prev) =>
             prev.map((c) =>
-                c.id === commentId ? { ...c, _count: { likes: count } } : c
+                c.id === commentId ? {...c, _count: {likes: count}} : c
             )
         );
     }
@@ -56,7 +55,7 @@ export default function PostCard({ post, onDeleted }: Props) {
         if (!confirm("정말 삭제하시겠습니까?")) return;
         setDeleting(true);
         try {
-            const res = await fetch(`/api/posts/${post.id}`, { method: "DELETE" });
+            const res = await fetch(`/api/posts/${post.id}`, {method: "DELETE"});
             if (!res.ok) throw new Error();
             onDeleted(post.id);
         } catch {
@@ -69,13 +68,13 @@ export default function PostCard({ post, onDeleted }: Props) {
             <div className="flex items-start justify-between gap-2 mb-2">
                 <div className="flex items-center gap-2 flex-wrap">
                     {post.category && (
-                        <span className={`text-xs font-medium px-2.5 py-0.5 rounded-full ${getCategoryColor(post.category.name)}`}>
-              {post.category.name}
-            </span>
+                        <span className={`text-xs font-medium px-2.5 py-0.5 rounded-full ${post.category.color}`}>
+                          {post.category.name}
+                        </span>
                     )}
                     <p
                         className="text-gray-800 text-sm leading-relaxed transition-opacity duration-200"
-                        style={{ opacity: opacity / 100 }}
+                        style={{opacity: opacity / 100}}
                     >
                         {post.content}
                     </p>
@@ -110,7 +109,8 @@ export default function PostCard({ post, onDeleted }: Props) {
             </div>
 
             {showComments && (
-                <CommentSection postId={post.id} comments={comments} onCommentAdded={handleCommentAdded} onCommentLiked={handleCommentLiked} />
+                <CommentSection postId={post.id} comments={comments} onCommentAdded={handleCommentAdded}
+                                onCommentLiked={handleCommentLiked}/>
             )}
         </div>
     );

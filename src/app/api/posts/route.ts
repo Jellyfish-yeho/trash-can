@@ -44,7 +44,7 @@ export async function POST(request: NextRequest) {
         const cat = await prisma.category.upsert({
             where: { name: category.trim() },
             update: {},
-            create: { name: category.trim() },
+            create: { name: category.trim(), color: randomColor() },
         });
         categoryId = cat.id;
     }
