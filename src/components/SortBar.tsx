@@ -16,7 +16,6 @@ export default function SortBar() {
     const router = useRouter();
     const searchParams = useSearchParams();
     const sort = (searchParams.get("sort") ?? "latest") as SortValue;
-    const date = searchParams.get("date") ?? "";
     const { opacity, setOpacity } = useOpacity();
 
     const update = useCallback(
@@ -46,23 +45,6 @@ export default function SortBar() {
                             {opt.label}
                         </button>
                     ))}
-                </div>
-                <div className="flex items-center gap-2 ml-auto">
-                    <label className="text-sm text-gray-500">날짜 필터</label>
-                    <input
-                        type="date"
-                        value={date}
-                        onChange={(e) => update("date", e.target.value)}
-                        className="border border-gray-200 rounded-lg px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-rose-300"
-                    />
-                    {date && (
-                        <button
-                            onClick={() => update("date", "")}
-                            className="text-xs text-gray-400 hover:text-gray-600 transition"
-                        >
-                            초기화
-                        </button>
-                    )}
                 </div>
             </div>
 

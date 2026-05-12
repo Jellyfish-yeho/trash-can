@@ -8,17 +8,19 @@ interface Props {
     onPostCreated: (post: PostWithCounts) => void;
 }
 
-function getLocalDatetime() {
-    const now = new Date();
-    return new Date(now.getTime() - now.getTimezoneOffset() * 60000)
-        .toISOString()
-        .slice(0, 16);
-}
 function getLocalDate() {
     const now = new Date();
     return new Date(now.getTime() - now.getTimezoneOffset() * 60000)
         .toISOString()
-        .slice(0, 10); // "2026-05-11"
+        .slice(0, 10); // "2026-05-12"
+}
+function buildDateWithCurrentTime(dateOnly: string) {
+    // 날짜는 사용자 선택, 시간은 현재 로컬 시각
+    const now = new Date();
+    const result = new Date(
+        `${dateOnly}T${now.toTimeString().slice(0, 8)}` // "2026-05-12T15:33:00"
+    );
+    return result.toISOString(); // UTC로 변환해서 전송
 }
 
 export default function PostForm({ onPostCreated }: Props) {
@@ -27,14 +29,6 @@ export default function PostForm({ onPostCreated }: Props) {
     const [date, setDate] = useState(getLocalDate);
     const [loading, setLoading] = useState(false);      // boolean
     const [error, setError] = useState("");
-
-    // 날짜 바꿀 때 현재 시각 붙이기
-    function handleDateChange(e: React.ChangeEvent<HTMLInputElement>) {
-        const selectedDate = e.target.value; // "2026-05-11"
-        const now = new Date();
-        const hhmm = now.toTimeString().slice(0, 5); // "15:30"
-        setDate(`${selectedDate}T${hhmm}`); // "2026-05-11T15:30" 형식으로 저장
-    }
 
     async function handleSubmit(e: React.FormEvent) {
         e.preventDefault();
@@ -48,14 +42,14 @@ export default function PostForm({ onPostCreated }: Props) {
             const res = await fetch("/api/posts", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ content, category, date }),
+                body: JSON.stringify({ content, category }),
             });
             if (!res.ok) throw new Error("등록 실패");
             const post = await res.json();
             onPostCreated(post);
             setContent("");
             setCategory("");
-            setDate(getLocalDatetime());
+            setDate(getLocalDate());
         } catch {
             setError("등록 중 오류가 발생했습니다.");
         } finally {
@@ -72,12 +66,6 @@ export default function PostForm({ onPostCreated }: Props) {
                 새 글 작성
             </h2>
             <div className="flex flex-col sm:flex-row gap-3">
-                <input
-                    type="date"
-                    value={date.slice(0, 10)}
-                    onChange={handleDateChange}
-                    className="border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-rose-300 w-full sm:w-40"
-                />
                 <CategoryCombobox value={category} onChange={setCategory} />
                 <input
                     type="text"

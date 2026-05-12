@@ -19,7 +19,7 @@ model Post {
   content    String
   categoryId String?
   category   Category?  @relation(fields: [categoryId], references: [id], onDelete: SetNull)
-  date       DateTime   @default(now())
+  delYn      Boolean    @default(false)
   likes      PostLike[]
   comments   Comment[]
   createdAt  DateTime   @default(now())

@@ -7,7 +7,10 @@ export async function DELETE(
 ) {
     const { id } = await params;
 
-    await prisma.post.delete({ where: { id } });
+    await prisma.post.update({
+        where: { id },
+        data: { delYn: true },  // 실제 삭제 대신 플래그
+    });
 
     return NextResponse.json({ ok: true });
 }
