@@ -18,6 +18,7 @@ model Category {
 model Post {
   id         String     @id @default(cuid())
   content    String
+  imageUrl   String?    // ← 추가
   categoryId String?
   category   Category?  @relation(fields: [categoryId], references: [id], onDelete: SetNull)
   delYn      Boolean    @default(false)

@@ -31,14 +31,19 @@ export async function GET(request: NextRequest) {
 
 export async function POST(request: NextRequest) {
     const body = await request.json();
-    const { content, category, categoryColor } = body as {
+    const { content, category, categoryColor, imageUrl } = body as {
         content: string;
         category?: string;
         categoryColor?: string;
+        imageUrl?: string;
     };
 
     if (!content?.trim()) {
         return NextResponse.json({ error: "내용을 입력해주세요." }, { status: 400 });
+    }
+
+    if (content.length > 300) {
+        return NextResponse.json({ error: "글자수 초과입니다." }, { status: 400 });
     }
 
     let categoryId: string | null = null;
@@ -58,6 +63,7 @@ export async function POST(request: NextRequest) {
         data: {
             content: content.trim(),
             categoryId,
+            imageUrl: imageUrl ?? null,
         },
         include: {
             category: true,

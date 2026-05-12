@@ -23,6 +23,7 @@ export default function PostCard({post, onDeleted}: Props) {
     const [comments, setComments] = useState(post.comments);
     const [showComments, setShowComments] = useState(post.comments.length > 0);
     const [deleting, setDeleting] = useState(false);
+    const [imageOpen, setImageOpen] = useState(false);
 
     const {opacity} = useOpacity();
 
@@ -65,19 +66,15 @@ export default function PostCard({post, onDeleted}: Props) {
 
     return (
         <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-5 hover:shadow-md transition-shadow">
-            <div className="flex items-start justify-between gap-2 mb-2">
-                <div className="flex items-center gap-2 flex-wrap">
+
+            {/* 1행: 카테고리 + 삭제 버튼 */}
+            <div className="flex items-center justify-between mb-2">
+                <div>
                     {post.category && (
                         <span className={`text-xs font-medium px-2.5 py-0.5 rounded-full ${post.category.color}`}>
-                          {post.category.name}
-                        </span>
+                        {post.category.name}
+                    </span>
                     )}
-                    <p
-                        className="text-gray-800 text-sm leading-relaxed transition-opacity duration-200"
-                        style={{opacity: opacity / 100}}
-                    >
-                        {post.content}
-                    </p>
                 </div>
                 <button
                     onClick={handleDelete}
@@ -88,7 +85,42 @@ export default function PostCard({post, onDeleted}: Props) {
                 </button>
             </div>
 
-            <div className="flex items-center gap-4 mt-3">
+            {/* 2행: 텍스트 */}
+            <p
+                className="text-gray-800 text-sm leading-relaxed whitespace-pre-wrap transition-opacity duration-200 mb-2"
+                style={{opacity: opacity / 100}}
+            >
+                {post.content}
+            </p>
+
+            {/* 3행: 이미지 */}
+            {post.imageUrl && (
+                <>
+                    <img
+                        src={post.imageUrl}
+                        alt="첨부 이미지"
+                        className="mt-1 mb-2 rounded-xl max-h-32 object-cover cursor-pointer hover:opacity-90 transition"
+                        onClick={() => setImageOpen(true)}
+                    />
+                    {/* 이미지 미리보기 모달 */}
+                    {imageOpen && (
+                        <div
+                            className="fixed inset-0 bg-black/70 z-50 flex items-center justify-center"
+                            onClick={() => setImageOpen(false)}
+                        >
+                            <img
+                                src={post.imageUrl}
+                                alt="이미지 미리보기"
+                                className="max-w-[90vw] max-h-[90vh] rounded-xl object-contain"
+                                onClick={(e) => e.stopPropagation()}
+                            />
+                        </div>
+                    )}
+                </>
+            )}
+
+            {/* 4행: 시간 + 좋아요 + 댓글 */}
+            <div className="flex items-center gap-4 mt-2">
                 <span className="text-xs text-gray-400">{formatTime(post.createdAt)}</span>
                 <button
                     onClick={handleLike}
@@ -109,8 +141,12 @@ export default function PostCard({post, onDeleted}: Props) {
             </div>
 
             {showComments && (
-                <CommentSection postId={post.id} comments={comments} onCommentAdded={handleCommentAdded}
-                                onCommentLiked={handleCommentLiked}/>
+                <CommentSection
+                    postId={post.id}
+                    comments={comments}
+                    onCommentAdded={handleCommentAdded}
+                    onCommentLiked={handleCommentLiked}
+                />
             )}
         </div>
     );
