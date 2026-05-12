@@ -26,9 +26,16 @@ function buildDateWithCurrentTime(dateOnly: string) {
 export default function PostForm({ onPostCreated }: Props) {
     const [content, setContent] = useState("");
     const [category, setCategory] = useState("");
+    const [categoryColor, setCategoryColor] = useState("");
     const [date, setDate] = useState(getLocalDate);
     const [loading, setLoading] = useState(false);      // boolean
     const [error, setError] = useState("");
+
+    function handleCategoryChange(name: string, color?: string) {
+        setCategory(name);
+        if (color) setCategoryColor(color);
+        else setCategoryColor("");
+    }
 
     async function handleSubmit(e: React.FormEvent) {
         e.preventDefault();
@@ -42,7 +49,7 @@ export default function PostForm({ onPostCreated }: Props) {
             const res = await fetch("/api/posts", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ content, category }),
+                body: JSON.stringify({ content, category, categoryColor }),
             });
             if (!res.ok) throw new Error("등록 실패");
             const post = await res.json();

@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
+import {randomCategoryColor} from "@/lib/category-colors";
 
 export async function GET(request: NextRequest) {
     const { searchParams } = new URL(request.url);
@@ -30,9 +31,10 @@ export async function GET(request: NextRequest) {
 
 export async function POST(request: NextRequest) {
     const body = await request.json();
-    const { content, category } = body as {
+    const { content, category, categoryColor } = body as {
         content: string;
         category?: string;
+        categoryColor?: string;
     };
 
     if (!content?.trim()) {
@@ -44,7 +46,10 @@ export async function POST(request: NextRequest) {
         const cat = await prisma.category.upsert({
             where: { name: category.trim() },
             update: {},
-            create: { name: category.trim(), color: randomColor() },
+            create: {
+                name: category.trim(),
+                color: categoryColor || randomCategoryColor(),
+            },
         });
         categoryId = cat.id;
     }
