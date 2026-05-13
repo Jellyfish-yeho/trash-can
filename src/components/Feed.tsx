@@ -47,7 +47,12 @@ function FeedInner() {
     const [loadingMore, setLoadingMore] = useState(false);
     const [nextCursor, setNextCursor] = useState<string | null>(null);
     const [hasMore, setHasMore] = useState(true);
+    const [newPostsAvailable, setNewPostsAvailable] = useState(false);
+
+    const latestCreatedAt = useRef<string | null>(null);
     const observerRef = useRef<HTMLDivElement>(null);
+
+    const groups = groupByDate(posts);
 
     const fetchPosts = useCallback(async (silent = false) => {
         if (!silent) setLoading(true);
@@ -85,6 +90,20 @@ function FeedInner() {
         }
     }, [nextCursor, loadingMore, sort]);
 
+    async function handleLoadNewPosts() {
+        setNewPostsAvailable(false);
+        await fetchPosts(true);
+        window.scrollTo({ top: 0, behavior: "smooth" });
+    }
+
+    function handlePostCreated(post: PostWithCounts) {
+        setPosts((prev) => [post, ...prev]);
+    }
+
+    function handlePostDeleted(id: string) {
+        setPosts((prev) => prev.filter((p) => p.id !== id));
+    }
+
     // sort 바뀌면 리셋
     useEffect(() => {
         fetchPosts();
@@ -105,20 +124,49 @@ function FeedInner() {
         return () => observer.disconnect();
     }, [fetchMore, hasMore, loadingMore]);
 
-    function handlePostCreated(post: PostWithCounts) {
-        setPosts((prev) => [post, ...prev]);
-    }
+    // 최신 글 createdAt 추적
+    useEffect(() => {
+        if (posts.length > 0) {
+            latestCreatedAt.current = posts[0].createdAt;
+        }
+    }, [posts]);
 
-    function handlePostDeleted(id: string) {
-        setPosts((prev) => prev.filter((p) => p.id !== id));
-    }
+    // 30초마다 새 글 체크
+    useEffect(() => {
+        const interval = setInterval(async () => {
+            if (!latestCreatedAt.current) return;
+            try {
+                const params = new URLSearchParams();
+                params.set("sort", sort);
+                const res = await fetch(`/api/posts?${params.toString()}`);
+                if (!res.ok) return;
+                const data = await res.json();
+                const latest = data.posts[0];
+                if (latest && latest.createdAt !== latestCreatedAt.current) {
+                    setNewPostsAvailable(true);
+                }
+            } catch {}
+        }, 30000); // 30초
 
-    const groups = groupByDate(posts);
+        return () => clearInterval(interval);
+    }, [sort]);
 
     return (
         <div>
             <PostForm onPostCreated={handlePostCreated} />
             <SortBar />
+            {/* 새 글 토스트 */}
+            {newPostsAvailable && (
+                <div className="sticky top-4 z-40 flex justify-center mb-4">
+                    <button
+                        onClick={handleLoadNewPosts}
+                        className="bg-gray-800 text-white text-sm px-4 py-2 rounded-full shadow-lg hover:bg-gray-700 transition flex items-center gap-2"
+                    >
+                        <span>⬆️</span>
+                        <span>새 글이 있습니다. 클릭하여 불러오기</span>
+                    </button>
+                </div>
+            )}
             {loading ? (
                 <div className="text-center py-16 text-gray-400 text-sm">불러오는 중...</div>
             ) : posts.length === 0 ? (
