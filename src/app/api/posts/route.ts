@@ -5,6 +5,8 @@ import {randomCategoryColor} from "@/lib/category-colors";
 export async function GET(request: NextRequest) {
     const { searchParams } = new URL(request.url);
     const sort = searchParams.get("sort") ?? "latest";
+    const cursor = searchParams.get("cursor") ?? undefined;
+    const take = 20;
 
     const orderBy =
         sort === "oldest"
@@ -16,6 +18,8 @@ export async function GET(request: NextRequest) {
     const posts = await prisma.post.findMany({
         where: { delYn: false },
         orderBy,
+        take: take + 1, // 1개 더 가져와서 다음 페이지 있는지 확인
+        ...(cursor ? { cursor: { id: cursor }, skip: 1 } : {}),
         include: {
             category: true,
             _count: { select: { likes: true, comments: true } },
@@ -26,7 +30,11 @@ export async function GET(request: NextRequest) {
         },
     });
 
-    return NextResponse.json(posts);
+    const hasMore = posts.length > take;
+    const data = hasMore ? posts.slice(0, take) : posts;
+    const nextCursor = hasMore ? data[data.length - 1].id : null;
+
+    return NextResponse.json({ posts: data, nextCursor });
 }
 
 export async function POST(request: NextRequest) {
