@@ -6,6 +6,7 @@ import PostForm from "./PostForm";
 import SortBar from "./SortBar";
 import DateGroup from "./DateGroup";
 import {PostWithCounts} from "@/app/types";
+import PostCard from "@/components/PostCard";
 
 function getDateLabel(dateStr: string): string {
     const d = new Date(dateStr);
@@ -93,7 +94,15 @@ function FeedInner() {
                 <div className="text-center py-16 text-gray-400 text-sm">
                     아직 글이 없습니다. 첫 글을 작성해보세요!
                 </div>
+            ) : sort === "popular" ? (
+                // 인기순: 그룹핑 없이 바로 출력
+                <div className="space-y-3 pl-1">
+                    {posts.map((post) => (
+                        <PostCard key={post.id} post={post} onDeleted={handlePostDeleted}/>
+                    ))}
+                </div>
             ) : (
+                // 최신순/오래된순: 날짜별 그룹핑
                 <div>
                     {Array.from(groups.entries()).map(([label, groupPosts]) => (
                         <DateGroup key={label} label={label} posts={groupPosts} onDeleted={handlePostDeleted}/>
