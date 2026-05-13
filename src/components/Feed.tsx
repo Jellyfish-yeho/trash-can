@@ -54,11 +54,14 @@ function FeedInner() {
 
     const groups = groupByDate(posts);
 
+    const category = searchParams.get("category") ?? "";
+
     const fetchPosts = useCallback(async (silent = false) => {
         if (!silent) setLoading(true);
         try {
             const params = new URLSearchParams();
             params.set("sort", sort);
+            if (category) params.set("category", category);
             const res = await fetch(`/api/posts?${params.toString()}`);
             if (!res.ok) throw new Error();
             const data = await res.json();
@@ -69,7 +72,7 @@ function FeedInner() {
         } finally {
             if (!silent) setLoading(false);
         }
-    }, [sort]);
+    }, [sort, category]);
 
     const fetchMore = useCallback(async () => {
         if (!nextCursor || loadingMore) return;
@@ -78,6 +81,7 @@ function FeedInner() {
             const params = new URLSearchParams();
             params.set("sort", sort);
             params.set("cursor", nextCursor);
+            if (category) params.set("category", category);
             const res = await fetch(`/api/posts?${params.toString()}`);
             if (!res.ok) throw new Error();
             const data = await res.json();
@@ -88,7 +92,7 @@ function FeedInner() {
         } finally {
             setLoadingMore(false);
         }
-    }, [nextCursor, loadingMore, sort]);
+    }, [nextCursor, loadingMore, sort, category]);
 
     async function handleLoadNewPosts() {
         setNewPostsAvailable(false);

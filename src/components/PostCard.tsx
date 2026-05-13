@@ -1,6 +1,6 @@
 "use client";
 
-import {useState} from "react";
+import {useEffect, useState} from "react";
 import CommentSection from "./CommentSection";
 import {CommentWithCount, PostWithCounts} from "@/app/types";
 import {useOpacity} from "@/app/context/OpacityContext";
@@ -86,6 +86,12 @@ export default function PostCard({post, onDeleted}: Props) {
             setDeleting(false);
         }
     }
+
+    useEffect(() => {
+        setLikeCount(post._count.likes);
+        setCommentCount(post._count.comments);
+        setComments(post.comments);
+    }, [post]);
 
     return (
         <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-5 hover:shadow-md transition-shadow">
