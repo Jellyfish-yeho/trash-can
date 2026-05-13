@@ -1,7 +1,7 @@
 "use client";
 
 import { useRouter, useSearchParams } from "next/navigation";
-import { useCallback } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { useOpacity } from "@/app/context/OpacityContext";
 
 const SORT_OPTIONS = [
@@ -12,11 +12,26 @@ const SORT_OPTIONS = [
 
 type SortValue = (typeof SORT_OPTIONS)[number]["value"];
 
+interface Category {
+    id: string;
+    name: string;
+    color: string;
+}
+
 export default function SortBar() {
     const router = useRouter();
     const searchParams = useSearchParams();
     const sort = (searchParams.get("sort") ?? "latest") as SortValue;
+    const category = searchParams.get("category") ?? "";
     const { opacity, setOpacity } = useOpacity();
+    const [categories, setCategories] = useState<Category[]>([]);
+
+    useEffect(() => {
+        fetch("/api/categories")
+            .then((res) => res.json())
+            .then(setCategories)
+            .catch(() => {});
+    }, []);
 
     const update = useCallback(
         (key: string, value: string) => {
@@ -31,6 +46,7 @@ export default function SortBar() {
     return (
         <div className="flex flex-col gap-3 mb-6">
             <div className="flex flex-col sm:flex-row sm:items-center gap-3">
+                {/* 정렬 */}
                 <div className="flex gap-1 bg-gray-100 rounded-xl p-1">
                     {SORT_OPTIONS.map((opt) => (
                         <button
@@ -45,6 +61,30 @@ export default function SortBar() {
                             {opt.label}
                         </button>
                     ))}
+                </div>
+
+                {/* 카테고리 드롭다운 */}
+                <div className="flex items-center gap-2">
+                    <select
+                        value={category}
+                        onChange={(e) => update("category", e.target.value)}
+                        className="border border-gray-200 rounded-lg px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-rose-300 bg-white text-gray-700"
+                    >
+                        <option value="">전체 카테고리</option>
+                        {categories.map((cat) => (
+                            <option key={cat.id} value={cat.name}>
+                                {cat.name}
+                            </option>
+                        ))}
+                    </select>
+                    {category && (
+                        <button
+                            onClick={() => update("category", "")}
+                            className="text-xs text-gray-400 hover:text-gray-600 transition"
+                        >
+                            초기화
+                        </button>
+                    )}
                 </div>
             </div>
 

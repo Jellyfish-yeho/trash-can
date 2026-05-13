@@ -6,6 +6,7 @@ export async function GET(request: NextRequest) {
     const { searchParams } = new URL(request.url);
     const sort = searchParams.get("sort") ?? "latest";
     const cursor = searchParams.get("cursor") ?? undefined;
+    const categoryName = searchParams.get("category") ?? undefined;
     const take = 20;
 
     const orderBy =
@@ -16,9 +17,12 @@ export async function GET(request: NextRequest) {
                 : { createdAt: "desc" as const };
 
     const posts = await prisma.post.findMany({
-        where: { delYn: false },
+        where: {
+            delYn: false,
+            ...(categoryName ? { category: { name: categoryName } } : {}),
+        },
         orderBy,
-        take: take + 1, // 1개 더 가져와서 다음 페이지 있는지 확인
+        take: take + 1,
         ...(cursor ? { cursor: { id: cursor }, skip: 1 } : {}),
         include: {
             category: true,
